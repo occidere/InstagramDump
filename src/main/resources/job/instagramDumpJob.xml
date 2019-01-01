@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:batch="http://www.springframework.org/schema/batch"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="
+	   http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/batch
+	   http://www.springframework.org/schema/batch/spring-batch.xsd
+	   http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context.xsd
+	   http://www.springframework.org/schema/data/mongo
+	   http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+	   http://www.springframework.org/schema/util
+	   http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+	<import resource="classpath:META-INF/application-batch.xml"/>
+	<import resource="classpath:META-INF/application-mongo.xml"/>
+
+
+	<mongo:repositories base-package="org.occidere.instagramdump"/>
+
+
+	<context:annotation-config/>
+
+
+	<!-- ########## JOB 명시 ########## -->
+	<batch:job id="instagramDumpJob">
+		<batch:step id="partitionStep">
+			<partition step="instagramDumpStep" partitioner="instagramPartitioner" handler="instagramDumpHandler"/>
+		</batch:step>
+	</batch:job>
+
+
+	<!-- ########## Handler ########## -->
+	<bean id="instagramDumpHandler" scope="step"
+		  class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+		<property name="taskExecutor" ref="instagramDumpThreadTaskExecutor"/>
+		<property name="gridSize" value="#{jobParameters['threadSize']}"/>
+		<property name="step" ref="instagramDumpStep"/>
+	</bean>
+
+
+	<!-- ########## TreadTaskExecutor ########## -->
+	<bean id="instagramDumpThreadTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" scope="step">
+		<property name="corePoolSize" value="#{jobParameters['threadSize']}"/>
+	</bean>
+
+
+	<!-- ########## TaskletStep ########## -->
+	<batch:step id="instagramDumpStep" parent="taskletStep">
+		<batch:tasklet transaction-manager="dummyTransactionManager">
+			<batch:chunk reader="instagramReader" processor="instagramProcessor" writer="instagramWriter" commit-interval="5"/>
+		</batch:tasklet>
+	</batch:step>
+
+
+	<!-- ############# Bean 객체들 ############# -->
+	<bean id="instagramPartitioner" class="org.occidere.instagramdump.batch.InstagramPartitioner" scope="step"/>
+
+	<bean id="instagramReader" class="org.occidere.instagramdump.batch.InstagramReader" scope="step">
+		<property name="dateRange" value="#{jobParameters['dateRange']}"/>
+		<property name="url" value="#{jobParameters['url']}"/>
+	</bean>
+
+	<bean id="instagramProcessor" class="org.occidere.instagramdump.batch.InstagramProcessor" scope="step"/>
+
+	<bean id="instagramWriter" class="org.occidere.instagramdump.batch.InstagramWriter" scope="step"/>
+
+	<bean class="org.occidere.instagramdump.common.InstagramCrawler" scope="step" />
+
+</beans>

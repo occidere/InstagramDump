@@ -1,0 +1,47 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.1.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'org.occidere'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+bootJar {
+    baseName = 'instagramdump'
+    mainClassName = 'org.springframework.batch.core.launch.support.CommandLineJobRunner'
+    version ='0.0.1'
+}
+
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-batch')
+    implementation('org.springframework.boot:spring-boot-starter-data-mongodb')
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    annotationProcessor("org.projectlombok:lombok")
+    compile('org.projectlombok:lombok')
+    compile('ch.qos.logback:logback-classic')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.batch:spring-batch-test')
+
+}
