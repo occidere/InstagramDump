@@ -1,6 +1,5 @@
 package org.occidere.instagramdump.batch;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.occidere.instagramdump.domain.InstagramPhoto;

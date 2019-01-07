@@ -1,7 +1,5 @@
 package org.occidere.instagramdump.batch;
 
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.occidere.instagramdump.common.InstagramCrawler;
 import org.occidere.instagramdump.domain.InstagramPhoto;
 import org.slf4j.Logger;
@@ -30,17 +28,10 @@ public class InstagramReader implements ItemReader<InstagramPhoto>, StepExecutio
 	private InstagramCrawler crawler;
 	private Iterator<InstagramPhoto> iterator;
 
-	@Setter
-	private String url;
-	@Setter
-	private int dateRange;
-
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
 		// FIXME Autowired 정상화
-		crawler.setUrl(url);
-		crawler.setRange(dateRange);
-		log.info("Instagram 다운로드 시작! (URL={}, range={})", url, dateRange);
+		log.info("Instagram 다운로드 시작!");
 		iterator = crawler.getResult().iterator();
 		log.info("Instagram 다운로드 완료!");
 	}
