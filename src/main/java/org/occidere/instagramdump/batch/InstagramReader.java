@@ -30,7 +30,6 @@ public class InstagramReader implements ItemReader<InstagramPhoto>, StepExecutio
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		// FIXME Autowired 정상화
 		log.info("Instagram 다운로드 시작!");
 		iterator = crawler.getResult().iterator();
 		log.info("Instagram 다운로드 완료!");
