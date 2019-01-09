@@ -81,6 +81,11 @@ public class InstagramCrawler {
 	 * @return 지정한 range 에 포함되는 url의 사진들이 담긴 List
 	 */
 	private List<InstagramPhoto> getResultInRange(String url) {
+		if (StringUtils.isBlank(url)) {
+			errorLog.error("Empty URL!");
+			throw new RuntimeException("EmptyURLException");
+		}
+
 		List<InstagramPhoto> instagramPhotos = new ArrayList<>();
 		WebDriver driver = getChromeDriver(url);
 

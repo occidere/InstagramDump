@@ -55,11 +55,10 @@ public class BatchConfiguration extends DefaultBatchConfigurer {
 		return new ResourcelessTransactionManager();
 	}
 
-	// TODO Boot web application 전환하여 REST API 로 배치 호출 가능하게 적용 
 	@Bean
 	@StepScope
 	public InstagramCrawler instagramCrawler(
-			@Value("#{jobParameters[url] == null ? 'https://www.instagram.com/wm_ohmygirl/?hl=ko' : jobParameters[url]}") String url,
+			@Value("#{jobParameters[url]}") String url,
 			@Value("#{jobParameters[dateRange] == null ? 1 : jobParameters[dateRange]}") int dateRange) {
 		InstagramCrawler crawler = new InstagramCrawler();
 		crawler.setUrl(url);

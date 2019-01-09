@@ -27,7 +27,6 @@ public class InstagramWriter implements ItemWriter<InstagramPhoto>, StepExecutio
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-
 	}
 
 	@Override
