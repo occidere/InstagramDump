@@ -35,6 +35,7 @@ public class BatchController {
 		logger.info("url: {}, dateRange: {}", url, dateRange);
 
 		JobParameters jobParameters = new JobParametersBuilder()
+				.addLong("timestamp", System.currentTimeMillis()) // jobId 대용
 				.addString("url", url)
 				.addString("dateRange", "" + dateRange)
 				.toJobParameters();
