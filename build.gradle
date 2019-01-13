@@ -26,8 +26,8 @@ repositories {
 
 bootJar {
     baseName = 'instagramdump'
-    mainClassName = 'org.springframework.batch.core.launch.support.CommandLineJobRunner'
-    version ='0.0.1'
+//    mainClassName = 'org.springframework.batch.core.launch.support.CommandLineJobRunner'
+    version ='0.0.2'
 }
 
 
