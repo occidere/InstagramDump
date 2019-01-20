@@ -87,9 +87,10 @@ public class InstagramCrawler {
 		}
 
 		List<InstagramPhoto> instagramPhotos = new ArrayList<>();
-		WebDriver driver = getChromeDriver(url);
+		WebDriver driver = null;
 
 		try {
+			driver = getChromeDriver(url);
 			log.info("URL: {}", url);
 
 			// TODO: 컬렉션들 OOM 발생 방지 대책 마련
@@ -138,7 +139,9 @@ public class InstagramCrawler {
 		} catch (Exception e) {
 			errorLog.error("InstagramImageFetchError", e);
 		} finally {
-			driver.quit();
+			if (driver != null) {
+				driver.quit();
+			}
 		}
 
 		return instagramPhotos;
@@ -153,48 +156,55 @@ public class InstagramCrawler {
 	private InstagramPhoto getInstagramPhoto(String postUrl) throws Exception {
 		log.info("Post URL: {}", postUrl);
 
-		Set<String> urlSet = new HashSet<>();
-		WebDriver driver = getChromeDriver(postUrl); // 다음사진 보기용 오른쪽 클릭을 하기 위한 WebElement
-
 		String date = "";
 		String author = "";
 		String content = "";
 
+		Set<String> urlSet = new HashSet<>();
 		InstagramPhoto photo = new InstagramPhoto();
 		photo.setPageUrl(postUrl);
 
+		WebDriver driver = getChromeDriver(postUrl); // 다음사진 보기용 오른쪽 클릭을 하기 위한 WebElement
+
 		do {
-			Document doc = Jsoup.parse(getHtml(driver, "section")); //openConnection(postUrl, Method.GET, null, null);
-			Element article = doc.getElementsByTag("article").get(0);
+			try {
+				Document doc = Jsoup.parse(getHtml(driver, "section")); //openConnection(postUrl, Method.GET, null, null);
+				Element article = doc.getElementsByTag("article").get(0);
 
-			// ISO 8601 (2018-09-27T14:19:44.000Z)
-			// TODO 날짜 값은 time 태그의 datetime 어트리뷰트에 있음
-			if (StringUtils.isBlank(date)) {
-				date = LocalDateTime.parse(
-						article.selectFirst("time").attr("datetime"), INSTAGRAM_FORMATTER)
-						.plusHours(9) // 인스타는 UTC+0 을 사용하므로 KST 로 강제 고정
-						.format(FORMATTER);
-				photo.setDate(date);
-				log.info("Post Date: {}", date);
+				// ISO 8601 (2018-09-27T14:19:44.000Z)
+				// TODO 날짜 값은 time 태그의 datetime 어트리뷰트에 있음
+				if (StringUtils.isBlank(date)) {
+					date = LocalDateTime.parse(
+							article.selectFirst("time").attr("datetime"), INSTAGRAM_FORMATTER)
+							.plusHours(9) // 인스타는 UTC+0 을 사용하므로 KST 로 강제 고정
+							.format(FORMATTER);
+					photo.setDate(date);
+					log.info("Post Date: {}", date);
+				}
+
+				// TODO 작성자, 본문 내용은 C4VMK 에 있음
+				if (StringUtils.isBlank(content) || StringUtils.isBlank(author)) {
+					Element authorArea = article.selectFirst("div.C4VMK");
+
+					content = authorArea.selectFirst("span").text().replaceAll("[\\n\\r]", "");
+					photo.setContent(content);
+					log.info("Content: {}", content);
+
+					author = authorArea.selectFirst("h2._6lAjh").text();
+					photo.setAuthor(author);
+					log.info("Author: {}", author);
+				}
+
+				// TODO 사진들은 FFVAD 에 있음
+				urlSet.addAll(new HashSet<>(article.select(".FFVAD").eachAttr("src")));
+			} catch (Exception e) {
+				errorLog.error("HTML 태그에서 사진 포스팅 정보들 추출 도중 에러", e);
 			}
-
-			// TODO 작성자, 본문 내용은 C4VMK 에 있음
-			if (StringUtils.isBlank(content) || StringUtils.isBlank(author)) {
-				Element authorArea = article.selectFirst("div.C4VMK");
-
-				content = authorArea.selectFirst("span").text().replaceAll("[\\n\\r]", "");
-				photo.setContent(content);
-				log.info("Content: {}", content);
-
-				author = authorArea.selectFirst("h2._6lAjh").text();
-				photo.setAuthor(author);
-				log.info("Author: {}", author);
-			}
-
-			// TODO 사진들은 FFVAD 에 있음
-			urlSet.addAll(new HashSet<>(article.select(".FFVAD").eachAttr("src")));
 		} while (clickRightAndHasMore(driver));
-		driver.quit();
+
+		if (driver != null) {
+			driver.quit();
+		}
 
 		photo.setOriginImageUrls(new ArrayList<>(urlSet));
 
